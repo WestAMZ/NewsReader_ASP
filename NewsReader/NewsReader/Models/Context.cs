@@ -1,6 +1,7 @@
 ﻿namespace NewsReader.Models
 {
     using System;
+    using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity;
     using System.Linq;
 
@@ -12,8 +13,7 @@
         // 
         // Si desea tener como destino una base de datos y/o un proveedor de base de datos diferente, 
         // modifique la cadena de conexión 'Context'  en el archivo de configuración de la aplicación.
-        public Context()
-            : base("name=Context")
+        public Context() : base("name=Context")
         {
         }
 
@@ -23,11 +23,31 @@
         public virtual DbSet<News> News { get; set; }
         public virtual DbSet<Category> Category { get; set; }
         public virtual DbSet<Country> Country { get; set; }
-    }
+        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        {
+            //Configuration in News table
+            modelBuilder.Entity<News>().ToTable("News", "dbo");
+            modelBuilder.Entity<News>().HasKey(n => n.Id);
+            modelBuilder.Entity<News>().Property(n => n.Id)
+                .HasDatabaseGeneratedOption(DatabaseGeneratedOption.Identity);
+            modelBuilder.Entity<News>().Property(n => n.Title).HasMaxLength(150);
+            modelBuilder.Entity<News>().Property(n => n.Content).HasMaxLength(1000);
+            modelBuilder.Entity<News>().HasRequired<Category>(n => n.Category)
+                                        .WithMany(c => c.News)
+                                        .HasForeignKey<int>(n => n.IdCategory);
+            modelBuilder.Entity<News>().HasRequired<Country>(n => n.Country)
+                                        .WithMany(c => c.News)
+                                        .HasForeignKey<int>(n => n.IdCountry);
 
-    //public class MyEntity
-    //{
-    //    public int Id { get; set; }
-    //    public string Name { get; set; }
-    //}
+            modelBuilder.Entity<Country>().ToTable("Country", "dbo");
+            modelBuilder.Entity<Country>().HasKey(c => c.Id);
+            //modelBuilder.Entity<Country>().HasMany(c => c.News);
+
+            modelBuilder.Entity<Category>().ToTable("Category", "dbo");
+            modelBuilder.Entity<Category>().HasKey(c => c.Id);
+
+
+        }
+    }
 }
+    

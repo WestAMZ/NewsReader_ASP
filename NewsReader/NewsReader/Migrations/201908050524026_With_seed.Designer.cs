@@ -7,13 +7,13 @@ namespace NewsReader.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.2.0-61023")]
-    public sealed partial class dbinit : IMigrationMetadata
+    public sealed partial class With_seed : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(dbinit));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(With_seed));
         
         string IMigrationMetadata.Id
         {
-            get { return "201907190604314_db init"; }
+            get { return "201908050524026_With_seed"; }
         }
         
         string IMigrationMetadata.Source
