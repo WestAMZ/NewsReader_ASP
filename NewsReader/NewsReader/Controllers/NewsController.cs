@@ -2,122 +2,30 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
-using System.Web.Http;
-using System.Web.Http.Description;
+using System.Web;
+using System.Web.Mvc;
 using NewsReader.Models;
 
 namespace NewsReader.Controllers
 {
-    public class NewsController : ApiController
+    public class NewsController : Controller
     {
         private Context db = new Context();
 
-        // GET: api/News
-        //public IQueryable<News> GetNews()
-        //{
-        //    return db.News;
-        //}
-
-        // GET: api/News/5
-        [ResponseType(typeof(News))]
-        public IHttpActionResult GetNews(int id)
+        // GET: News
+        public ActionResult Index()
         {
-            News news = db.News.Find(id);
-            if (news == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(news);
-        }
-
-        // PUT: api/News/5
-        [ResponseType(typeof(void))]
-        public IHttpActionResult PutNews(int id, News news)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            if (id != news.Id)
-            {
-                return BadRequest();
-            }
-
-            db.Entry(news).State = EntityState.Modified;
-
-            try
-            {
-                db.SaveChanges();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!NewsExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return StatusCode(HttpStatusCode.NoContent);
-        }
-
-        // POST: api/News
-        [ResponseType(typeof(News))]
-        public IHttpActionResult PostNews(News news)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            db.News.Add(news);
-            db.SaveChanges();
-
-            return CreatedAtRoute("DefaultApi", new { id = news.Id }, news);
-        }
-
-        // DELETE: api/News/5
-        [ResponseType(typeof(News))]
-        public IHttpActionResult DeleteNews(int id)
-        {
-            News news = db.News.Find(id);
-            if (news == null)
-            {
-                return NotFound();
-            }
-
-            db.News.Remove(news);
-            db.SaveChanges();
-
-            return Ok(news);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-            base.Dispose(disposing);
-        }
-
-        private bool NewsExists(int id)
-        {
-            return db.News.Count(e => e.Id == id) > 0;
+            //var news = GetNews();
+            //return View(news);
+            var news = db.News.Include(n => n.Category).Include(n => n.Country);
+            return View(news.ToList());
         }
         public ICollection<News> GetNews()
         {
             var numbers = getNumbers(db.News.Count());
-            return db.News.Where(x=>numbers.Contains(x.Id)).ToList();
+            return db.News.Where(x => numbers.Contains(x.Id)).ToList();
         }
         private List<int> getNumbers(int length)
         {
@@ -131,6 +39,118 @@ namespace NewsReader.Controllers
                     list.Add(n);
             }
             return list;
+        }
+
+        // GET: News/Details/5
+        public ActionResult Details(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            News news = db.News.Find(id);
+            if (news == null)
+            {
+                return HttpNotFound();
+            }
+            return View(news);
+        }
+
+        // GET: News/Create
+        public ActionResult Create()
+        {
+            ViewBag.IdCategory = new SelectList(db.Category, "Id", "Name");
+            ViewBag.IdCountry = new SelectList(db.Country, "Id", "Name");
+            return View();
+        }
+
+        // POST: News/Create
+        // Para protegerse de ataques de publicación excesiva, habilite las propiedades específicas a las que desea enlazarse. Para obtener 
+        // más información vea https://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Create([Bind(Include = "Id,Title,Content,Image,Published,IdCategory,IdCountry")] News news)
+        {
+            if (ModelState.IsValid)
+            {
+                db.News.Add(news);
+                db.SaveChanges();
+                return RedirectToAction("Index");
+            }
+
+            ViewBag.IdCategory = new SelectList(db.Category, "Id", "Name", news.IdCategory);
+            ViewBag.IdCountry = new SelectList(db.Country, "Id", "Name", news.IdCountry);
+            return View(news);
+        }
+
+        // GET: News/Edit/5
+        public ActionResult Edit(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            News news = db.News.Find(id);
+            if (news == null)
+            {
+                return HttpNotFound();
+            }
+            ViewBag.IdCategory = new SelectList(db.Category, "Id", "Name", news.IdCategory);
+            ViewBag.IdCountry = new SelectList(db.Country, "Id", "Name", news.IdCountry);
+            return View(news);
+        }
+
+        // POST: News/Edit/5
+        // Para protegerse de ataques de publicación excesiva, habilite las propiedades específicas a las que desea enlazarse. Para obtener 
+        // más información vea https://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Edit([Bind(Include = "Id,Title,Content,Image,Published,IdCategory,IdCountry")] News news)
+        {
+            if (ModelState.IsValid)
+            {
+                db.Entry(news).State = EntityState.Modified;
+                db.SaveChanges();
+                return RedirectToAction("Index");
+            }
+            ViewBag.IdCategory = new SelectList(db.Category, "Id", "Name", news.IdCategory);
+            ViewBag.IdCountry = new SelectList(db.Country, "Id", "Name", news.IdCountry);
+            return View(news);
+        }
+
+        // GET: News/Delete/5
+        public ActionResult Delete(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            News news = db.News.Find(id);
+            if (news == null)
+            {
+                return HttpNotFound();
+            }
+            return View(news);
+        }
+
+        // POST: News/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public ActionResult DeleteConfirmed(int id)
+        {
+            News news = db.News.Find(id);
+            db.News.Remove(news);
+            db.SaveChanges();
+            return RedirectToAction("Index");
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                db.Dispose();
+            }
+            base.Dispose(disposing);
         }
     }
 }
