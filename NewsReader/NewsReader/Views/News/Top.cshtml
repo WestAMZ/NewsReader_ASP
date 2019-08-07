@@ -1,0 +1,34 @@
+﻿@model IEnumerable<NewsReader.Models.News>
+
+@{
+    ViewBag.Title = "Top";
+}
+
+<h2>Top</h2>
+
+
+@foreach (var item in Model)
+{
+
+
+<div>
+    <div class="jumbotron">
+        <span class="badge-pill badge-primary">@Html.DisplayFor(modelItem => item.Category.Name)    </span>
+        <div class="float-left"><strong>@Html.DisplayFor(modelItem => item.Country.Name)</strong></div>
+        <div class="float-right">@Html.DisplayFor(modelItem => item.Published.Date)</div>
+        <h3>@Html.DisplayFor(modelItem => item.Title)</h3>
+    </div>
+</div>
+
+    <div>
+        <p>
+            @Html.DisplayFor(modelItem => item.Content)
+        </p>
+    </div>
+
+
+    <img src="@Html.DisplayFor(modelItem => item.Image)" style="width:850px;height:auto;" />
+    <hr />
+}
+
+

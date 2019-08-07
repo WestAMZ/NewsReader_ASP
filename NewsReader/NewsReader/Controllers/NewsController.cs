@@ -22,6 +22,14 @@ namespace NewsReader.Controllers
             var news = db.News.Include(n => n.Category).Include(n => n.Country);
             return View(news.ToList());
         }
+        // GET: News/Top
+        public ActionResult Top()
+        {
+            //var news = GetNews();
+            //return View(news);
+            var news = db.News.Include(n => n.Category).Include(n => n.Country);
+            return View(news.ToList());
+        }
         public ICollection<News> GetNews()
         {
             var numbers = getNumbers(db.News.Count());
